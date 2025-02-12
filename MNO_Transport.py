@@ -24,6 +24,7 @@ Utiliser Optuna pour optimisation du modèle
 """
 import pandas as pd
 import numpy as np
+from itertools import product # cross product in iterations (for loop)
 
 def import_PeriodData():
     T = []
@@ -70,21 +71,45 @@ class Periode_T():
         self.co2_conteneur = pd.DataFrame(data[82:88,1:7], index=geo, columns=geo)
         self.mix_energetique = pd.Series(data[91:,1], index=geo)
 
-def calculateExport(prodP1, prodP2, prodP3, geo, produit):
-    export = pd.DataFrame(np.zeros(shape=(6,3)), index=geo, columns=produit)
-    from itertools import product
-    for zone, prod in product(geo, produit):
-        if prod=='P1':
-            export.loc[zone, prod]=prodP1[zone].sum()
-        elif prod=='P2':
-            export.loc[zone, prod]=prodP2[zone].sum()
-        elif prod=='P3':
-            export.loc[zone, prod]=prodP3[zone].sum()
-        else:
-            raise ValueError('Invalid product name')
+class Production():
+    def __init__(self, geo:list, produit:list):
+        self.P1 = pd.DataFrame(np.ones(shape=(6,6))*1, index=geo, columns=geo)
+        self.P2 = pd.DataFrame(np.ones(shape=(6,6))*1, index=geo, columns=geo)
+        self.P3 = pd.DataFrame(np.ones(shape=(6,6))*1, index=geo, columns=geo)
         
-    print(export)
-    return export
+        #. tbd
+        self.P1.loc['AFR']=2
+        self.P2.loc['AMN']=4
+        self.P3.loc['EUR']=6
+
+        self.exportation = pd.DataFrame(np.zeros(shape=(6,3)), index=geo, columns=produit)
+        self.production  = pd.DataFrame(np.zeros(shape=(6,3)), index=geo, columns=produit)
+        
+    def calculateProdExport(self):
+        for zone, prod in product(geo, produit):
+            if prod=='P1':
+                self.exportation.loc[zone, prod] = self.P1[zone].sum()
+                self.production.loc[zone, prod] = self.P1.loc[zone].sum()
+            elif prod=='P2':
+                self.exportation.loc[zone, prod] = self.P2[zone].sum()
+                self.production.loc[zone, prod] = self.P2.loc[zone].sum()
+            elif prod=='P3':
+                self.exportation.loc[zone, prod] = self.P3[zone].sum()
+                self.production.loc[zone, prod] = self.P3.loc[zone].sum()
+            else:
+                raise ValueError('Invalid product name')
+                
+        print(f'\n{'EXPORTATIONS':^20}\n{self.exportation}')
+        print(f'\n{'PRODUCTION':^20}\n{self.production}')
+        
+    
+class Stock():
+    def __init__(self, geo:list, produit:list):
+        self.P1 = pd.DataFrame(np.ones(shape=(6,6))*1, index=geo, columns=geo)
+        self.P2 = pd.DataFrame(np.ones(shape=(6,6))*2, index=geo, columns=geo)
+        self.P3 = pd.DataFrame(np.ones(shape=(6,6))*3, index=geo, columns=geo)
+        
+        self.stock = pd.DataFrame(np.zeros(shape=(6,3)), index=geo, columns=produit)
 
 
 #%% MAIN
@@ -94,9 +119,15 @@ root_dir = 'C:/Users/peill/Documents/Sigma_Clermont/MS_ESD/M1/MNO/Transport/'
 # Import data
 T1, T2, T3, geo, produit = import_PeriodData()
 
-# Create decision tables
-prodP1 = pd.DataFrame(np.ones(shape=(6,6))*1, index=geo, columns=geo)
-prodP2 = pd.DataFrame(np.ones(shape=(6,6))*2, index=geo, columns=geo)
-prodP3 = pd.DataFrame(np.ones(shape=(6,6))*3, index=geo, columns=geo)
+# Initialisation
+Prod = Production(geo, produit)
+Stocks = Stock(geo, produit)
 
-export = calculateExport(prodP1, prodP2, prodP3, geo, produit)
+
+# Calculate prod and export quantities
+Prod.calculateProdExport()
+
+# Update stocks
+stock = updateStock(stock, prod_tot)
+
+

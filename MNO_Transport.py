@@ -70,6 +70,22 @@ class Periode_T():
         self.co2_conteneur = pd.DataFrame(data[82:88,1:7], index=geo, columns=geo)
         self.mix_energetique = pd.Series(data[91:,1], index=geo)
 
+def calculateExport(prodP1, prodP2, prodP3, geo, produit):
+    export = pd.DataFrame(np.zeros(shape=(6,3)), index=geo, columns=produit)
+    from itertools import product
+    for zone, prod in product(geo, produit):
+        if prod=='P1':
+            export.loc[zone, prod]=prodP1[zone].sum()
+        elif prod=='P2':
+            export.loc[zone, prod]=prodP2[zone].sum()
+        elif prod=='P3':
+            export.loc[zone, prod]=prodP3[zone].sum()
+        else:
+            raise ValueError('Invalid product name')
+        
+    print(export)
+    return export
+
 
 #%% MAIN
 
@@ -79,8 +95,8 @@ root_dir = 'C:/Users/peill/Documents/Sigma_Clermont/MS_ESD/M1/MNO/Transport/'
 T1, T2, T3, geo, produit = import_PeriodData()
 
 # Create decision tables
-prodP1 = pd.DataFrame(np.zeros(shape=(6,6)), index=geo, columns=geo)
-prodP2 = pd.DataFrame(np.zeros(shape=(6,6)), index=geo, columns=geo)
-prodP3 = pd.DataFrame(np.zeros(shape=(6,6)), index=geo, columns=geo)
+prodP1 = pd.DataFrame(np.ones(shape=(6,6))*1, index=geo, columns=geo)
+prodP2 = pd.DataFrame(np.ones(shape=(6,6))*2, index=geo, columns=geo)
+prodP3 = pd.DataFrame(np.ones(shape=(6,6))*3, index=geo, columns=geo)
 
-expedition = pd.DataFrame(np.zeros(shape=(6,3)), index=geo, columns=produit)
+export = calculateExport(prodP1, prodP2, prodP3, geo, produit)

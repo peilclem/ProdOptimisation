@@ -1,4 +1,4 @@
-# Strategic Logistics Serious Game  
+# Strategic Logistics 
 
 ## Project Overview  
 This project is designed to simulate the complexities of managing global logistics and production. It explores the impact of production location, transportation costs, customs fees, and environmental factors on a company’s operational performance.  

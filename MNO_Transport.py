@@ -102,9 +102,9 @@ class Production():
             else:
                 raise ValueError('Invalid product name')
                 
-        print(f'\n{'EXPORTATIONS':^20}\n{self.exportation}')
-        print(f'\n{'PRODUCTION':^20}\n{self.production}')
-        print(f'\n\n{'--- Total Prod updated ---':^50}')
+        # print(f'\n{'EXPORTATIONS':^20}\n{self.exportation}')
+        # print(f'\n{'PRODUCTION':^20}\n{self.production}')
+        # print(f'\n\n{'--- Total Prod updated ---':^50}')
     
 class Stock():
     def __init__(self, geo:list, produit:list):
@@ -126,7 +126,7 @@ class Stock():
         
         # Add total
         self.total.loc['Total'] = self.total.sum(axis=0)
-        print(f'{'--- STOCKS updated ---':^50}')
+        # print(f'{'--- STOCKS updated ---':^50}')
 
 class Company():
     def __init__(self, Periode, Production, Stock, geo:list):
@@ -155,6 +155,8 @@ class Company():
     
     
     
+
+
 #%% MAIN
 
 root_dir = 'C:/Users/peill/Documents/Sigma_Clermont/MS_ESD/M1/MNO/Transport/'

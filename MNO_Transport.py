@@ -111,7 +111,13 @@ class Stock():
         
         self.stock = pd.DataFrame(np.zeros(shape=(6,3)), index=geo, columns=produit)
         
+    def computeStockVariation(self, Production):
+        
+        
+        return variation
+    
     def updateStock(self, Production):
+        self.variation = self.computeStockVariation(Production)
         self.stock = pd.DataFrame(np.ones(shape=(6,6))*5, index=geo, columns=geo)
         print(f'{'--- STOCKS updated ---':^50}')
 

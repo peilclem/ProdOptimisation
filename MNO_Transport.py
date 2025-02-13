@@ -31,7 +31,7 @@ def import_PeriodData():
     filenames = [f'MNO_Transport_DataT{k}.csv' for k in range(3)]
     
     for k, filename in enumerate(filenames):
-        data = np.array(pd.read_csv(root_dir + filename, sep=',', encoding='latin-1').dropna(axis=1, how='all').replace(',',''))
+        data = np.array(pd.read_csv(data_dir + filename, sep=',', encoding='latin-1').dropna(axis=1, how='all').replace(',',''))
         geo = list(data[10:16,0])
         produit = list(data[2,1:4])
         T.append(Periode_T(data, k, geo, produit))
@@ -159,6 +159,7 @@ class Company():
 #%% MAIN
 
 root_dir = 'C:/Users/peill/Documents/Sigma_Clermont/MS_ESD/M1/MNO/Transport/'
+data_dir = root_dir + 'data/'
 
 # Import data
 T1, T2, T3, geo, produit = import_PeriodData()
@@ -172,5 +173,5 @@ MyStocks = Stock(geo, produit)
 MyStocks.updateStock(MyProd, T1)
 
 # Company
-MyCompany = Company(T1, MyProd, MyStock, geo)
+MyCompany = Company(T1, MyProd, MyStocks, geo)
 

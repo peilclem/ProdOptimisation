@@ -76,7 +76,7 @@ class Periode_T():
             
 class Production():
     def __init__(self, geo:list, produit:list):
-        self.P1 = pd.DataFrame(np.ones(shape=(6,6))*0, index=geo, columns=geo)
+        self.P1 = pd.DataFrame(np.ones(shape=(6,6))*10000, index=geo, columns=geo)
         self.P2 = pd.DataFrame(np.ones(shape=(6,6))*0, index=geo, columns=geo)
         self.P3 = pd.DataFrame(np.ones(shape=(6,6))*0, index=geo, columns=geo)
         
@@ -151,7 +151,6 @@ class Company():
     def calculateCA(self, Production, Periode):
         nb_produit = Production.production.sum(axis=0)
         prixProduit = Periode.prod.loc['Prix de vente Unitaire']
-        print(prixProduit)
         return np.dot(nb_produit, prixProduit)
     
     
@@ -174,4 +173,4 @@ MyStocks.updateStock(MyProd, T1)
 
 # Company
 MyCompany = Company(T1, MyProd, MyStocks, geo)
-
+print(f"Chiffre d'affaires de l'entreprise: {MyCompany.CA:,.2f}€")

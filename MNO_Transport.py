@@ -101,7 +101,7 @@ class Production():
                 
         print(f'\n{'EXPORTATIONS':^20}\n{self.exportation}')
         print(f'\n{'PRODUCTION':^20}\n{self.production}')
-        
+        print(f'\n\n{'--- Total Prod updated ---':^50}')
     
 class Stock():
     def __init__(self, geo:list, produit:list):
@@ -110,7 +110,10 @@ class Stock():
         self.P3 = pd.DataFrame(np.ones(shape=(6,6))*3, index=geo, columns=geo)
         
         self.stock = pd.DataFrame(np.zeros(shape=(6,3)), index=geo, columns=produit)
-
+        
+    def updateStock(self, Production):
+        self.stock = pd.DataFrame(np.ones(shape=(6,6))*5, index=geo, columns=geo)
+        print(f'{'--- STOCKS updated ---':^50}')
 
 #%% MAIN
 
@@ -119,15 +122,13 @@ root_dir = 'C:/Users/peill/Documents/Sigma_Clermont/MS_ESD/M1/MNO/Transport/'
 # Import data
 T1, T2, T3, geo, produit = import_PeriodData()
 
-# Initialisation
-Prod = Production(geo, produit)
-Stocks = Stock(geo, produit)
-
-
 # Calculate prod and export quantities
+Prod = Production(geo, produit)
 Prod.calculateProdExport()
 
 # Update stocks
-stock = updateStock(stock, prod_tot)
+Stocks = Stock(geo, produit)
+Stocks.updateStock(Prod)
+# Stocks.stock
 
 

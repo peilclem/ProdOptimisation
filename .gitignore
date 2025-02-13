@@ -1,3 +1,4 @@
+# Ignore excel pdf and png files
 *.xlsx
 *.png
 *.pdf

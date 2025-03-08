@@ -80,11 +80,6 @@ class Production():
         self.P2 = pd.DataFrame(np.ones(shape=(6,6))*0, index=geo, columns=geo)
         self.P3 = pd.DataFrame(np.ones(shape=(6,6))*0, index=geo, columns=geo)
         
-        # #. tbd
-        # self.P1.loc['AFR']=2
-        # self.P2.loc['AMN']=4
-        # self.P3.loc['EUR']=6
-
         self.exportation = pd.DataFrame(np.zeros(shape=(6,3)), index=geo, columns=produit)
         self.production  = pd.DataFrame(np.zeros(shape=(6,3)), index=geo, columns=produit)
         
@@ -139,6 +134,9 @@ class Company():
         self.vente = pd.DataFrame(np.ones(shape=(7,3))*1, index=geo_copy, columns=['Petite', 'Moyenne', 'Grande'])
         self.etat = pd.DataFrame(np.ones(shape=(7,5))*0, index=geo_copy, columns=['CoutExploit', 'Invest', 'Cession','Capacite','CO2'])
         
+        # Update etat
+        self.calculate_initial_state(Periode)
+        
         # Finance
         self.CA = self.calculateCA(Production, Periode)
         self.prodExport = pd.Series(np.zeros(5), index=['ProdCoutDirect', 'DistribCoutDirect', 'FraisDouanes', 'StockCout', 'Total'])
@@ -153,9 +151,61 @@ class Company():
         prixProduit = Periode.prod.loc['Prix de vente Unitaire']
         return np.dot(nb_produit, prixProduit)
     
-    
-    def constrain_prod(self):
-        return None
+    def calculate_initial_state(self, Periode):
+        for geo_k in geo_copy:
+            self.etat.Capacite.loc[geo_k] = np.dot(
+                np.array(MyCompany.initial.loc[geo_k]),
+                np.array(Periode.usines.iloc[0])
+                )
+            self.etat.CoutExploit.loc[geo_k] = np.dot(
+                np.array(MyCompany.initial.loc[geo_k]),
+                np.array(Periode.usines.iloc[1])
+                )
+            self.etat.Invest.loc[geo_k] = np.dot(
+                np.array(MyCompany.achat.loc[geo_k]),
+                np.array(Periode.usines.iloc[2])
+                )
+            self.etat.Cession.loc[geo_k] = np.dot(
+                np.array(MyCompany.vente.loc[geo_k]),
+                np.array(Periode.usines.iloc[3])
+                )
+            self.etat.CO2.loc[geo_k] = np.dot(
+                np.array(MyCompany.initial.loc[geo_k]),
+                np.array(Periode.usines.iloc[4])
+                )
+
+
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    def constrain_prod(self, Production):
+        sur_prod = []
+        print(f'{self.etat.loc[:, 'Capacite']=}')
+        for geo_k in geo_copy:
+            capa_prod_geo = Production.P1.loc[geo_k].sum()*0.5 + Production.P2.loc[geo_k].sum()*2 + Production.P3.loc[geo_k].sum()*12
+            print(capa_prod_geo)
+            if capa_prod_geo > self.etat.loc[geo_k, 'Capacite']:
+                sur_prod.append(geo_k)
+        if len(sur_prod)>0:
+            raise ValueError(f'Capacité dépassée dans les geos suivantes {sur_prod}')
+        else:
+            print('Toutes les capacités sont respectées')
+
 
 
 #%% MAIN
@@ -176,4 +226,5 @@ MyStocks.updateStock(MyProd, T1)
 
 # Company
 MyCompany = Company(T1, MyProd, MyStocks, geo)
+MyCompany.constrain_prod(MyProd)
 print(f"Chiffre d'affaires de l'entreprise: {MyCompany.CA:,.2f}€")

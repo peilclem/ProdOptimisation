@@ -154,7 +154,8 @@ class Company():
         return np.dot(nb_produit, prixProduit)
     
     
-    
+    def constrain_prod(self):
+        return None
 
 
 #%% MAIN

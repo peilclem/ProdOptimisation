@@ -75,7 +75,7 @@ class Periode_T():
             
             
 class Production():
-    def __init__(self, geo:list, produit:list):
+    def __init__(self, Periode, geo:list, produit:list):
         self.P1 = pd.DataFrame(np.ones(shape=(6,6))*10000, index=geo, columns=geo)
         self.P2 = pd.DataFrame(np.ones(shape=(6,6))*0, index=geo, columns=geo)
         self.P3 = pd.DataFrame(np.ones(shape=(6,6))*0, index=geo, columns=geo)
@@ -102,7 +102,7 @@ class Production():
         # print(f'\n\n{'--- Total Prod updated ---':^50}')
     
 class Stock():
-    def __init__(self, geo:list, produit:list):
+    def __init__(self, Production, Periode, geo:list, produit:list):
         self.P1 = pd.DataFrame(np.ones(shape=(6,6))*0, index=geo, columns=geo)
         self.P2 = pd.DataFrame(np.ones(shape=(6,6))*0, index=geo, columns=geo)
         self.P3 = pd.DataFrame(np.ones(shape=(6,6))*0, index=geo, columns=geo)
@@ -125,14 +125,16 @@ class Stock():
 
 class Company():
     def __init__(self, Periode, Production, Stock, geo:list):
-        geo_copy = geo.copy()
-        geo_copy.append('Total')
         
         # Composition
-        self.initial = pd.DataFrame(np.ones(shape=(7,3))*0, index=geo_copy, columns=['Petite', 'Moyenne', 'Grande'])
-        self.achat = pd.DataFrame(np.ones(shape=(7,3))*0, index=geo_copy, columns=['Petite', 'Moyenne', 'Grande'])
-        self.vente = pd.DataFrame(np.ones(shape=(7,3))*1, index=geo_copy, columns=['Petite', 'Moyenne', 'Grande'])
-        self.etat = pd.DataFrame(np.ones(shape=(7,5))*0, index=geo_copy, columns=['CoutExploit', 'Invest', 'Cession','Capacite','CO2'])
+        self.initial = pd.DataFrame(np.zeros(shape=(6,3)), index=geo, columns=['Petite', 'Moyenne', 'Grande'])
+        self.achat   = pd.DataFrame(np.zeros(shape=(6,3)), index=geo, columns=['Petite', 'Moyenne', 'Grande'])
+        self.vente   = pd.DataFrame(np.zeros(shape=(6,3)), index=geo, columns=['Petite', 'Moyenne', 'Grande'])
+        self.etat    = pd.DataFrame(np.ones(shape=(6,5)),  index=geo, columns=['CoutExploit', 'Invest', 'Cession','Capacite','CO2'])
+        
+        self.initial = self.add_total(self.initial)
+        self.achat   = self.add_total(self.achat)
+        self.vente   = self.add_total(self.vente)
         
         # Update etat
         self.calculate_initial_state(Periode)
@@ -151,61 +153,48 @@ class Company():
         prixProduit = Periode.prod.loc['Prix de vente Unitaire']
         return np.dot(nb_produit, prixProduit)
     
+    def add_total(self, df):
+        total = df.sum(axis=0)
+        df.loc['Total'] = total
+        return df
+    
     def calculate_initial_state(self, Periode):
-        for geo_k in geo_copy:
-            self.etat.Capacite.loc[geo_k] = np.dot(
-                np.array(MyCompany.initial.loc[geo_k]),
+        for geo_k in geo:
+            self.etat.loc[geo_k, 'Capacite'] = np.dot(
+                np.array(self.initial.loc[geo_k]),
                 np.array(Periode.usines.iloc[0])
                 )
-            self.etat.CoutExploit.loc[geo_k] = np.dot(
-                np.array(MyCompany.initial.loc[geo_k]),
+            self.etat.loc[geo_k, 'CoutExploit'] = np.dot(
+                np.array(self.initial.loc[geo_k]),
                 np.array(Periode.usines.iloc[1])
                 )
-            self.etat.Invest.loc[geo_k] = np.dot(
-                np.array(MyCompany.achat.loc[geo_k]),
+            self.etat.loc[geo_k, 'Invest'] = np.dot(
+                np.array(self.achat.loc[geo_k]),
                 np.array(Periode.usines.iloc[2])
                 )
-            self.etat.Cession.loc[geo_k] = np.dot(
-                np.array(MyCompany.vente.loc[geo_k]),
+            self.etat.loc[geo_k, 'Cession'] = np.dot(
+                np.array(self.vente.loc[geo_k]),
                 np.array(Periode.usines.iloc[3])
                 )
-            self.etat.CO2.loc[geo_k] = np.dot(
-                np.array(MyCompany.initial.loc[geo_k]),
+            self.etat.loc[geo_k, 'CO2'] = np.dot(
+                np.array(self.initial.loc[geo_k]),
                 np.array(Periode.usines.iloc[4])
                 )
-
-
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+        self.etat = self.add_total(self.etat)
+        return None
         
     def constrain_prod(self, Production):
         sur_prod = []
-        print(f'{self.etat.loc[:, 'Capacite']=}')
-        for geo_k in geo_copy:
+        for geo_k in geo:
             capa_prod_geo = Production.P1.loc[geo_k].sum()*0.5 + Production.P2.loc[geo_k].sum()*2 + Production.P3.loc[geo_k].sum()*12
-            print(capa_prod_geo)
             if capa_prod_geo > self.etat.loc[geo_k, 'Capacite']:
                 sur_prod.append(geo_k)
         if len(sur_prod)>0:
-            raise ValueError(f'Capacité dépassée dans les geos suivantes {sur_prod}')
+            print(f'CAPA dépassée dans géo: {sur_prod=}')
+            # raise ValueError(f'Capacité dépassée dans les geos suivantes {sur_prod}')
         else:
             print('Toutes les capacités sont respectées')
-
+        return None
 
 
 #%% MAIN
@@ -217,11 +206,11 @@ data_dir = root_dir + 'data/'
 T1, T2, T3, geo, produit = import_PeriodData()
 
 # Calculate prod and export quantities
-MyProd = Production(geo, produit)
+MyProd = Production(T1, geo, produit)
 MyProd.calculateProdExport()
 
 # Update stocks
-MyStocks = Stock(geo, produit)
+MyStocks = Stock(T1, MyProd, geo, produit)
 MyStocks.updateStock(MyProd, T1)
 
 # Company
